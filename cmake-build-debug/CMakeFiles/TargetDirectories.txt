@@ -1,0 +1,3 @@
+/home/ruxuge/CLionProjects/IceTowerForTwo/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/ruxuge/CLionProjects/IceTowerForTwo/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/ruxuge/CLionProjects/IceTowerForTwo/cmake-build-debug/CMakeFiles/IceTowerForTwoApp.dir

@@ -1,0 +1,1 @@
+/usr/bin/c++  -Wall -Wextra -fopenmp -ggdb -rdynamic CMakeFiles/IceTowerForTwoapp.dir/src/main.cpp.o -o IceTowerForTwoapp  -lSDL2 -lSDL2_image -lSDL2 -lSDL2_image 
