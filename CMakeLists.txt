@@ -26,7 +26,7 @@ include_directories("${PROJECT_SOURCE_DIR}/src")
 
 file(GLOB_RECURSE IceTowerForTwo_SOURCES "src/*.cpp")
 
-add_executable(IceTowerForTwoApp ${IceTowerForTwo_SOURCES} )
+add_executable(IceTowerForTwoApp ${IceTowerForTwo_SOURCES})
 target_link_libraries(IceTowerForTwoApp ${SDL2_LIBRARIES}  ${SDL2IMAGE_LIBRARIES})
 
 add_custom_command(TARGET IceTowerForTwoApp PRE_BUILD

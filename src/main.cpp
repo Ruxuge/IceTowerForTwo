@@ -36,6 +36,7 @@ public:
     std::array<double, 2> velocity;
     std::array<double, 2> acceleration;
     double friction;
+    double gravity;
 
     void update(double dt_f, std::function<void(physical_c*, std::array<double, 2>& pos, std::array<double, 2>& vel)> callback_f)
     {
@@ -46,6 +47,29 @@ public:
         auto new_position = position + new_velocity * dt_f + new_acceleration * dt_f * dt_f * 0.5;
         callback_f(this, new_position, new_velocity);
     }
+
+    void jump(){
+        float myGravity = 0.2f;
+        float maxFallSpeed = -5.0f;
+        float myJumpForce = 5.0f;
+        float curJumpForce = 0.0f;
+        float deltaTime;
+        float jump_p;
+
+        curJumpForce = myJumpForce;
+
+
+        jump_p += curJumpForce * deltaTime;
+
+        if(curJumpForce > maxFallSpeed){
+                    myJumpForce -= myGravity * deltaTime;
+        }else{
+                curJumpForce = maxFallSpeed;
+        }
+
+        //callback_f(this, new_position, new_velocity);
+    }
+
 };
 
 class player : public physical_c
@@ -56,7 +80,7 @@ public:
     player()
     {
         position = {10, 10};
-        velocity = {0, 0};
+        velocity = {0*0.5, 0};
         friction = 0.03;
         acceleration = {0,0};
     }
@@ -110,9 +134,13 @@ int main(int, char**)
     shared_ptr<SDL_Texture> tex_p(IMG_LoadTexture(renderer_p.get(), "data/player.png"),
                                   [](auto* tex) { SDL_DestroyTexture(tex); });
 
+    shared_ptr<SDL_Texture> tex_t(IMG_LoadTexture(renderer_t.get(), "data/tlo.png"),
+                                  [](auto* tex) { SDL_DestroyTexture(tex); });
 
 
     player player1;
+
+    player player2;
 
 
     milliseconds dt(15);
@@ -133,16 +161,29 @@ int main(int, char**)
         if (kbdstate[SDL_SCANCODE_UP]) player1.intentions["up"] = 1;
         if (kbdstate[SDL_SCANCODE_DOWN]) player1.intentions["down"] = 1;
 
-        //if (kbdstate[SDL_SCANCODE_D]) player2.intentions["right"] = 1;
-        //if (kbdstate[SDL_SCANCODE_A]) player2.intentions["left"] = 1;
-        //if (kbdstate[SDL_SCANCODE_W]) player2.intentions["up"] = 1;
-        //if (kbdstate[SDL_SCANCODE_S]) player2.intentions["down"] = 1;
+        if (kbdstate[SDL_SCANCODE_D]) player2.intentions["right"] = 1;
+        if (kbdstate[SDL_SCANCODE_A]) player2.intentions["left"] = 1;
+        if (kbdstate[SDL_SCANCODE_S]) player2.intentions["down"] = 1;
+        if (kbdstate[SDL_SCANCODE_W]) player2.intentions["up"] = 1;
 
 
         /// fizyka
         double dt_f = dt.count() / 1000.0;
         player1.apply_intent();
         player1.update(dt_f, [&](auto p, auto pos, auto vel) {
+            if (pos[1] < 30) {
+                p->position = pos;
+                p->velocity = vel;
+                p->friction = 0.2;
+            } else {
+                p->velocity = {(vel[0] * vel[0] > 2.2) ? vel[0] : 0.0, 0};
+                p->position[0] = pos[0];
+                p->friction = 0.3;
+
+            }
+        });
+        player2.apply_intent();
+        player2.update(dt_f, [&](auto p, auto pos, auto vel) {
             if (pos[1] < 30) {
                 p->position = pos;
                 p->velocity = vel;
@@ -155,20 +196,19 @@ int main(int, char**)
         });
 
 
+
+
         /// grafika
-        SDL_SetRenderDrawColor(renderer_p.get(), 0, 100, 20, 255);
-        SDL_RenderClear(renderer_p.get());
-        SDL_SetRenderDrawColor(renderer_p.get(), 255, 100, 200, 255);
+        SDL_SetRenderDrawColor(renderer_t.get(), 0, 100, 20, 255);
+        SDL_RenderClear(renderer_t.get());
+        SDL_SetRenderDrawColor(renderer_t.get(), 255, 100, 200, 255);
         SDL_RenderCopy(renderer_p.get(), tex_p.get(), NULL, NULL);
         draw_o(renderer_p, player1.position*10.0, tex_p, 16, 16, player1.position[0]*36+player1.position[1]*5);
-        //draw_o(renderer_p.get(),{50,20},tex_p.get(),16,16,30);
+        draw_o(renderer_p, player2.position*10.0, tex_p, 16, 16, player2.position[0]*36+player2.position[1]*5);
         SDL_RenderPresent(renderer_p.get());
 
         this_thread::sleep_until(current_time = current_time + dt);
 
-        //steady_clock::time_point frame_end = steady_clock::now();
-
-        //std::cout << "frame time: " << (frame_end - frame_start).count() << std::endl;
 
     }
     SDL_Quit();
