@@ -48,18 +48,19 @@ public:
     }
 };
 
-class player_c : public physical_c
+class player : public physical_c
 {
 public:
     std::map<std::string, int> intentions;
 
-    player_c()
+    player()
     {
         position = {10, 10};
         velocity = {0, 0};
         friction = 0.03;
         acceleration = {0,0};
     }
+
 
     /**
  * applies and clears intentions
@@ -76,22 +77,28 @@ public:
     }
 };
 
+
+
 int main(int, char**)
 {
     using namespace std;
     using namespace std::chrono;
     using namespace tp::operators;
 
-    std::cout << "ready" << endl;
-
     SDL_Init(SDL_INIT_EVERYTHING);
     IMG_Init(IMG_INIT_PNG);
     shared_ptr<SDL_Window> window_p(
             SDL_CreateWindow("IceTowerForTwo", SDL_WINDOWPOS_UNDEFINED,
-                             SDL_WINDOWPOS_UNDEFINED, 640, 360, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE),
+                             SDL_WINDOWPOS_UNDEFINED, 2000, 1024, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE),
             [](auto* window) { SDL_DestroyWindow(window); });
 
     shared_ptr<SDL_Renderer> renderer_p(
+            SDL_CreateRenderer(window_p.get(), -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC),
+            [](auto* renderer) {
+                SDL_DestroyRenderer(renderer);
+            });
+
+    shared_ptr<SDL_Renderer> renderer_t(
             SDL_CreateRenderer(window_p.get(), -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC),
             [](auto* renderer) {
                 SDL_DestroyRenderer(renderer);
@@ -104,7 +111,9 @@ int main(int, char**)
                                   [](auto* tex) { SDL_DestroyTexture(tex); });
 
 
-    player_c player;
+
+    player player1;
+
 
     milliseconds dt(15);
     steady_clock::time_point current_time = steady_clock::now(); // remember current time
@@ -112,7 +121,6 @@ int main(int, char**)
 
 
     for (bool game_active = true; game_active;) {
-        cout << "witam" << endl;
         //steady_clock::time_point frame_start = steady_clock::now();
         SDL_Event event;
         while (SDL_PollEvent(&event)) { // check if there are some events
@@ -120,15 +128,21 @@ int main(int, char**)
                 game_active = false;
         }
         auto kbdstate = SDL_GetKeyboardState(NULL);
-        if (kbdstate[SDL_SCANCODE_RIGHT]) player.intentions["right"] = 1;
-        if (kbdstate[SDL_SCANCODE_LEFT]) player.intentions["left"] = 1;
-        if (kbdstate[SDL_SCANCODE_UP]) player.intentions["up"] = 1;
-        if (kbdstate[SDL_SCANCODE_DOWN]) player.intentions["down"] = 1;
+        if (kbdstate[SDL_SCANCODE_RIGHT]) player1.intentions["right"] = 1;
+        if (kbdstate[SDL_SCANCODE_LEFT]) player1.intentions["left"] = 1;
+        if (kbdstate[SDL_SCANCODE_UP]) player1.intentions["up"] = 1;
+        if (kbdstate[SDL_SCANCODE_DOWN]) player1.intentions["down"] = 1;
+
+        //if (kbdstate[SDL_SCANCODE_D]) player2.intentions["right"] = 1;
+        //if (kbdstate[SDL_SCANCODE_A]) player2.intentions["left"] = 1;
+        //if (kbdstate[SDL_SCANCODE_W]) player2.intentions["up"] = 1;
+        //if (kbdstate[SDL_SCANCODE_S]) player2.intentions["down"] = 1;
+
 
         /// fizyka
         double dt_f = dt.count() / 1000.0;
-        player.apply_intent();
-        player.update(dt_f, [&](auto p, auto pos, auto vel) {
+        player1.apply_intent();
+        player1.update(dt_f, [&](auto p, auto pos, auto vel) {
             if (pos[1] < 30) {
                 p->position = pos;
                 p->velocity = vel;
@@ -139,12 +153,14 @@ int main(int, char**)
                 p->friction = 0.3;
             }
         });
+
+
         /// grafika
         SDL_SetRenderDrawColor(renderer_p.get(), 0, 100, 20, 255);
         SDL_RenderClear(renderer_p.get());
         SDL_SetRenderDrawColor(renderer_p.get(), 255, 100, 200, 255);
         SDL_RenderCopy(renderer_p.get(), tex_p.get(), NULL, NULL);
-        draw_o(renderer_p, player.position*10.0, tex_p, 16, 16, player.position[0]*36+player.position[1]*5);
+        draw_o(renderer_p, player1.position*10.0, tex_p, 16, 16, player1.position[0]*36+player1.position[1]*5);
         //draw_o(renderer_p.get(),{50,20},tex_p.get(),16,16,30);
         SDL_RenderPresent(renderer_p.get());
 

@@ -1,4 +1,5 @@
-/home/ruxuge/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/211.7142.21/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/ruxuge/CLionProjects/IceTowerForTwo
+/app/extra/clion/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/ruxuge/CLionProjects/IceTowerForTwo
+-- Found PkgConfig: /usr/bin/pkg-config (found version "1.7.4") 
 -- Configuring done
 -- Generating done
 -- Build files have been written to: /home/ruxuge/CLionProjects/IceTowerForTwo/cmake-build-debug
