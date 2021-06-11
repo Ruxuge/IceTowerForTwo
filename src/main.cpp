@@ -111,9 +111,17 @@ int main(int, char**)
 
     SDL_Init(SDL_INIT_EVERYTHING);
     IMG_Init(IMG_INIT_PNG);
+
+    SDL_Rect rect1 = { 0, 0, 10, 360 };
+    SDL_Rect rect2 = { 0, 0, 640, 10 };
+    SDL_Rect rect3 = { 630, 0, 10, 360 };
+    SDL_Rect rect4 = { 0, 350, 640, 10 };
+
+    //SDL_Rect p1_left = { player.position[0], player1.position[1], 1, 1 };
+
     shared_ptr<SDL_Window> window_p(
             SDL_CreateWindow("IceTowerForTwo", SDL_WINDOWPOS_UNDEFINED,
-                             SDL_WINDOWPOS_UNDEFINED, 2000, 1024, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE),
+                             SDL_WINDOWPOS_UNDEFINED, 640, 360, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE),
             [](auto* window) { SDL_DestroyWindow(window); });
 
     shared_ptr<SDL_Renderer> renderer_p(
@@ -122,20 +130,21 @@ int main(int, char**)
                 SDL_DestroyRenderer(renderer);
             });
 
-    shared_ptr<SDL_Renderer> renderer_t(
-            SDL_CreateRenderer(window_p.get(), -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC),
-            [](auto* renderer) {
-                SDL_DestroyRenderer(renderer);
-            });
+
+
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
     SDL_RenderSetLogicalSize(renderer_p.get(), 640, 360);
 
-    shared_ptr<SDL_Texture> tex_p(IMG_LoadTexture(renderer_p.get(), "data/player.png"),
+    shared_ptr<SDL_Texture> tex_p1(IMG_LoadTexture(renderer_p.get(), "data/player1.png"),
                                   [](auto* tex) { SDL_DestroyTexture(tex); });
 
-    shared_ptr<SDL_Texture> tex_t(IMG_LoadTexture(renderer_t.get(), "data/tlo.png"),
+    shared_ptr<SDL_Texture> tex_p2(IMG_LoadTexture(renderer_p.get(), "data/player1.png"),
                                   [](auto* tex) { SDL_DestroyTexture(tex); });
+
+    shared_ptr<SDL_Texture> tex_t(IMG_LoadTexture(renderer_p.get(), "data/tlo.png"),
+                                  [](auto* tex) { SDL_DestroyTexture(tex); });
+
 
 
     player player1;
@@ -149,6 +158,22 @@ int main(int, char**)
 
 
     for (bool game_active = true; game_active;) {
+
+        //SDL_bool collision_l = SDL_HasIntersection(, &rect1);
+
+       // if (collision_l) {
+       //     std::cout << "Left" << endl;
+
+        //}
+
+       // SDL_bool collision_t = SDL_HasIntersection(, &rect3);
+
+        //if (collision_t) {
+      //      std::cout << "Top" << endl;
+
+        //}
+
+
         //steady_clock::time_point frame_start = steady_clock::now();
         SDL_Event event;
         while (SDL_PollEvent(&event)) { // check if there are some events
@@ -193,18 +218,41 @@ int main(int, char**)
                 p->position[0] = pos[0];
                 p->friction = 0.3;
             }
+
         });
+
+        //SDL_Rect p1_left = { player1.position[0], player1.position[1], 1, 1 };
+
+
 
 
 
 
         /// grafika
-        SDL_SetRenderDrawColor(renderer_t.get(), 0, 100, 20, 255);
-        SDL_RenderClear(renderer_t.get());
-        SDL_SetRenderDrawColor(renderer_t.get(), 255, 100, 200, 255);
-        SDL_RenderCopy(renderer_p.get(), tex_p.get(), NULL, NULL);
-        draw_o(renderer_p, player1.position*10.0, tex_p, 16, 16, player1.position[0]*36+player1.position[1]*5);
-        draw_o(renderer_p, player2.position*10.0, tex_p, 16, 16, player2.position[0]*36+player2.position[1]*5);
+        //SDL_SetRenderDrawColor(renderer_p.get(), 0, 10, 200, 255);
+        //SDL_RenderClear(renderer_p.get());
+
+        //SDL_SetRenderDrawColor(renderer_p.get(), 0, 0, 0, 0);
+        //SDL_RenderFillRect(renderer_p.get(), &p1_left);
+
+        SDL_RenderCopy(renderer_p.get(), tex_t.get(), NULL, NULL);
+
+        SDL_SetRenderDrawColor(renderer_p.get(), 255, 0, 0, 255);
+        SDL_RenderFillRect(renderer_p.get(), &rect1);
+
+        SDL_SetRenderDrawColor(renderer_p.get(), 255, 0, 0, 255);
+        SDL_RenderFillRect(renderer_p.get(), &rect2);
+
+        SDL_SetRenderDrawColor(renderer_p.get(), 255, 0, 0, 255);
+        SDL_RenderFillRect(renderer_p.get(), &rect3);
+
+        SDL_SetRenderDrawColor(renderer_p.get(), 255, 0, 0, 255);
+        SDL_RenderFillRect(renderer_p.get(), &rect4);
+
+        draw_o(renderer_p, player1.position*10, tex_p1, 16, 16, player1.position[0]*36+player1.position[1]*5);
+        draw_o(renderer_p, player2.position*10, tex_p2, 16, 16, player2.position[0]*36+player2.position[1]*5);
+
+
         SDL_RenderPresent(renderer_p.get());
 
         this_thread::sleep_until(current_time = current_time + dt);
