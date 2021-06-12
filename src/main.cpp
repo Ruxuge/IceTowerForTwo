@@ -103,11 +103,22 @@ public:
  * */
     void apply_intent()
     {
-        acceleration = {0, 30};
+        acceleration = {0, 0};
         if (intentions.count("right")) acceleration[0] += 100;
         if (intentions.count("left")) acceleration[0] += -100;
         if (intentions.count("up")) acceleration[1] += -100;
         if (intentions.count("down")) acceleration[1] += +100;
+
+        intentions.clear();
+    }
+
+    void bounc(int b){
+        if(b = 1){
+            acceleration[0] += 100;
+
+        }
+
+
 
         intentions.clear();
     }
@@ -224,6 +235,7 @@ int main(int, char**)
         player2.update(dt_f, [&](auto p, auto pos, auto vel) {
             if(pos[0] < 2){
                 std::cout << "Left" << endl;
+                player2.bounc(1);
             }else if(pos[0] > 62){
                 std::cout << "right" << endl;
             }else if( pos[1] < 2){
@@ -242,9 +254,6 @@ int main(int, char**)
             }
 
         });
-
-
-
 
 
 
