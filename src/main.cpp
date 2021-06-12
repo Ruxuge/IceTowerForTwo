@@ -48,6 +48,8 @@ public:
         callback_f(this, new_position, new_velocity);
     }
 
+
+
     void jump(){
         float myGravity = 0.2f;
         float maxFallSpeed = -5.0f;
@@ -83,7 +85,17 @@ public:
         velocity = {0*0.5, 0};
         friction = 0.03;
         acceleration = {0,0};
+
+        //int px = 1;
+       // int py = 1;
+        //int p2x = 1;
+        //int p2y = 1;
+
+        //SDL_Rect p1 = { px, py, 10, 10 };
+        //SDL_Rect p2 = { px, py, 10, 10 };
+
     }
+
 
 
     /**
@@ -117,7 +129,8 @@ int main(int, char**)
     SDL_Rect rect3 = { 630, 0, 10, 360 };
     SDL_Rect rect4 = { 0, 350, 640, 10 };
 
-    //SDL_Rect p1_left = { player.position[0], player1.position[1], 1, 1 };
+
+    //SDL_Rect p2 = { p2x, p2y, 1, 1 };
 
     shared_ptr<SDL_Window> window_p(
             SDL_CreateWindow("IceTowerForTwo", SDL_WINDOWPOS_UNDEFINED,
@@ -136,10 +149,10 @@ int main(int, char**)
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
     SDL_RenderSetLogicalSize(renderer_p.get(), 640, 360);
 
-    shared_ptr<SDL_Texture> tex_p1(IMG_LoadTexture(renderer_p.get(), "data/player1.png"),
+    shared_ptr<SDL_Texture> tex_p1(IMG_LoadTexture(renderer_p.get(), "data/ship1.png"),
                                   [](auto* tex) { SDL_DestroyTexture(tex); });
 
-    shared_ptr<SDL_Texture> tex_p2(IMG_LoadTexture(renderer_p.get(), "data/player1.png"),
+    shared_ptr<SDL_Texture> tex_p2(IMG_LoadTexture(renderer_p.get(), "data/ship2.png"),
                                   [](auto* tex) { SDL_DestroyTexture(tex); });
 
     shared_ptr<SDL_Texture> tex_t(IMG_LoadTexture(renderer_p.get(), "data/tlo.png"),
@@ -161,8 +174,8 @@ int main(int, char**)
 
         //SDL_bool collision_l = SDL_HasIntersection(, &rect1);
 
-       // if (collision_l) {
-       //     std::cout << "Left" << endl;
+        //if (collision_l) {
+            //std::cout << "Left" << endl;
 
         //}
 
@@ -196,7 +209,7 @@ int main(int, char**)
         double dt_f = dt.count() / 1000.0;
         player1.apply_intent();
         player1.update(dt_f, [&](auto p, auto pos, auto vel) {
-            if (pos[1] < 30) {
+            if (pos[1] < 40) {
                 p->position = pos;
                 p->velocity = vel;
                 p->friction = 0.2;
@@ -209,7 +222,16 @@ int main(int, char**)
         });
         player2.apply_intent();
         player2.update(dt_f, [&](auto p, auto pos, auto vel) {
-            if (pos[1] < 30) {
+            if(pos[0] < 2){
+                std::cout << "Left" << endl;
+            }else if(pos[0] > 62){
+                std::cout << "right" << endl;
+            }else if( pos[1] < 2){
+                std::cout << "top" << endl;
+            }else if(pos[1] > 35){
+                std::cout << "bottom" << endl;
+            }
+            if (pos[1] < 40) {
                 p->position = pos;
                 p->velocity = vel;
                 p->friction = 0.2;
@@ -221,8 +243,6 @@ int main(int, char**)
 
         });
 
-        //SDL_Rect p1_left = { player1.position[0], player1.position[1], 1, 1 };
-
 
 
 
@@ -233,7 +253,10 @@ int main(int, char**)
         //SDL_RenderClear(renderer_p.get());
 
         //SDL_SetRenderDrawColor(renderer_p.get(), 0, 0, 0, 0);
-        //SDL_RenderFillRect(renderer_p.get(), &p1_left);
+        //SDL_RenderFillRect(renderer_p.get(), &p1);
+
+        //SDL_SetRenderDrawColor(renderer_p.get(), 0, 0, 0, 0);
+        //SDL_RenderFillRect(renderer_p.get(), &p2);
 
         SDL_RenderCopy(renderer_p.get(), tex_t.get(), NULL, NULL);
 
@@ -249,8 +272,8 @@ int main(int, char**)
         SDL_SetRenderDrawColor(renderer_p.get(), 255, 0, 0, 255);
         SDL_RenderFillRect(renderer_p.get(), &rect4);
 
-        draw_o(renderer_p, player1.position*10, tex_p1, 16, 16, player1.position[0]*36+player1.position[1]*5);
-        draw_o(renderer_p, player2.position*10, tex_p2, 16, 16, player2.position[0]*36+player2.position[1]*5);
+        draw_o(renderer_p, player1.position*10, tex_p1, 12, 20, player1.position[0]*36+player1.position[1]*5);
+        draw_o(renderer_p, player2.position*10, tex_p2, 16, 20, player2.position[0]*36+player2.position[1]*5);
 
 
         SDL_RenderPresent(renderer_p.get());
