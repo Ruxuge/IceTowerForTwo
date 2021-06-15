@@ -3,18 +3,13 @@
 #include <SDL2/SDL_image.h>
 #include <array>
 #include <chrono>
-#include <cstdint>
 #include <functional>
 #include <iomanip>
 #include <iostream>
 #include <map>
 #include <memory>
-#include <set>
-#include <stdexcept>
-#include <string>
 #include <thread>
-#include <tuple>
-#include <vector>
+
 
 
 std::ostream& operator<<(std::ostream& o, const std::array<double, 2>& a)
@@ -35,13 +30,13 @@ public:
     std::array<double, 2> position;
     std::array<double, 2> velocity;
     std::array<double, 2> acceleration;
+    bool shoot;
+
     double friction;
-    double gravity;
 
     void update(double dt_f, std::function<void(physical_c*, std::array<double, 2>& pos, std::array<double, 2>& vel)> callback_f)
     {
         using namespace tp::operators;
-        // apply friction:
         auto new_acceleration = acceleration - velocity*length(velocity)*friction;
         auto new_velocity = velocity + new_acceleration * dt_f;
         auto new_position = position + new_velocity * dt_f + new_acceleration * dt_f * dt_f * 0.5;
@@ -49,27 +44,29 @@ public:
     }
 
 
+};
 
-    void jump(){
-        float myGravity = 0.2f;
-        float maxFallSpeed = -5.0f;
-        float myJumpForce = 5.0f;
-        float curJumpForce = 0.0f;
-        float deltaTime;
-        float jump_p;
+class bullet : public physical_c
+{
+public:
+    std::map<std::string, int> intentions;
 
-        curJumpForce = myJumpForce;
+    bullet()
+    {
+        position = {10, 10};
+        velocity = {0*0.5, 0};
+        friction = 0.03;
+        acceleration = {0,0};
+        shoot = false;
 
+        int px = 1;
+        int py = 1;
+        int p2x = 1;
+        int p2y = 1;
 
-        jump_p += curJumpForce * deltaTime;
+        SDL_Rect p1 = { px, py, 10, 10 };
+        SDL_Rect p2 = { px, py, 10, 10 };
 
-        if(curJumpForce > maxFallSpeed){
-                    myJumpForce -= myGravity * deltaTime;
-        }else{
-                curJumpForce = maxFallSpeed;
-        }
-
-        //callback_f(this, new_position, new_velocity);
     }
 
 };
@@ -85,14 +82,15 @@ public:
         velocity = {0*0.5, 0};
         friction = 0.03;
         acceleration = {0,0};
+        shoot = false;
 
-        //int px = 1;
-       // int py = 1;
-        //int p2x = 1;
-        //int p2y = 1;
+        int px = 1;
+        int py = 1;
+        int p2x = 1;
+        int p2y = 1;
 
-        //SDL_Rect p1 = { px, py, 10, 10 };
-        //SDL_Rect p2 = { px, py, 10, 10 };
+        SDL_Rect p1 = { px, py, 10, 10 };
+        SDL_Rect p2 = { px, py, 10, 10 };
 
     }
 
@@ -104,10 +102,12 @@ public:
     void apply_intent()
     {
         acceleration = {0, 0};
+        shoot = false;
         if (intentions.count("right")) acceleration[0] += 100;
         if (intentions.count("left")) acceleration[0] += -100;
         if (intentions.count("up")) acceleration[1] += -100;
         if (intentions.count("down")) acceleration[1] += +100;
+        if (intentions.count("shoot")) shoot = true;
 
         intentions.clear();
     }
@@ -117,8 +117,6 @@ public:
             acceleration[0] += 100;
 
         }
-
-
 
         intentions.clear();
     }
@@ -209,26 +207,37 @@ int main(int, char**)
         if (kbdstate[SDL_SCANCODE_LEFT]) player1.intentions["left"] = 1;
         if (kbdstate[SDL_SCANCODE_UP]) player1.intentions["up"] = 1;
         if (kbdstate[SDL_SCANCODE_DOWN]) player1.intentions["down"] = 1;
+        if (kbdstate[SDL_SCANCODE_RCTRL]) player1.intentions["shoot"] = 1;
 
         if (kbdstate[SDL_SCANCODE_D]) player2.intentions["right"] = 1;
         if (kbdstate[SDL_SCANCODE_A]) player2.intentions["left"] = 1;
         if (kbdstate[SDL_SCANCODE_S]) player2.intentions["down"] = 1;
         if (kbdstate[SDL_SCANCODE_W]) player2.intentions["up"] = 1;
+        if (kbdstate[SDL_SCANCODE_LCTRL]) player1.intentions["shoot"] = 1;
 
 
         /// fizyka
         double dt_f = dt.count() / 1000.0;
         player1.apply_intent();
         player1.update(dt_f, [&](auto p, auto pos, auto vel) {
+            if(pos[0] < 2){
+                std::cout << "Left" << endl;
+                player2.bounc(1);
+            }else if(pos[0] > 62){
+                std::cout << "right" << endl;
+            }else if( pos[1] < 2){
+                std::cout << "top" << endl;
+            }else if(pos[1] > 35){
+                std::cout << "bottom" << endl;
+            }
             if (pos[1] < 40) {
                 p->position = pos;
                 p->velocity = vel;
                 p->friction = 0.2;
             } else {
-                p->velocity = {(vel[0] * vel[0] > 2.2) ? vel[0] : 0.0, 0};
+                p->velocity = {(vel[0]*vel[0]>2.2)?vel[0]:0.0, 0};
                 p->position[0] = pos[0];
                 p->friction = 0.3;
-
             }
         });
         player2.apply_intent();
@@ -280,6 +289,7 @@ int main(int, char**)
 
         SDL_SetRenderDrawColor(renderer_p.get(), 255, 0, 0, 255);
         SDL_RenderFillRect(renderer_p.get(), &rect4);
+
 
         draw_o(renderer_p, player1.position*10, tex_p1, 12, 20, player1.position[0]*36+player1.position[1]*5);
         draw_o(renderer_p, player2.position*10, tex_p2, 16, 20, player2.position[0]*36+player2.position[1]*5);
