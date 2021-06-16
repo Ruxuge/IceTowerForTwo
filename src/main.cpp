@@ -46,31 +46,6 @@ public:
 
 };
 
-class bullet : public physical_c
-{
-public:
-    std::map<std::string, int> intentions;
-
-    bullet()
-    {
-        position = {10, 10};
-        velocity = {0*0.5, 0};
-        friction = 0.03;
-        acceleration = {0,0};
-        shoot = false;
-
-        int px = 1;
-        int py = 1;
-        int p2x = 1;
-        int p2y = 1;
-
-        SDL_Rect p1 = { px, py, 10, 10 };
-        SDL_Rect p2 = { px, py, 10, 10 };
-
-    }
-
-};
-
 class player : public physical_c
 {
 public:
@@ -83,17 +58,18 @@ public:
         friction = 0.03;
         acceleration = {0,0};
         shoot = false;
-
-        int px = 1;
-        int py = 1;
-        int p2x = 1;
-        int p2y = 1;
-
-        SDL_Rect p1 = { px, py, 10, 10 };
-        SDL_Rect p2 = { px, py, 10, 10 };
-
     }
 
+    SDL_Rect playerFrame()
+    {
+        int x = position[0];
+        int y = position[1];
+        SDL_Rect frame = { x, y, 10, 10 };
+    }
+
+    void bullet(){
+
+    }
 
 
     /**
@@ -113,9 +89,10 @@ public:
     }
 
     void bounc(int b){
-        if(b = 1){
-            acceleration[0] += 100;
-
+        acceleration = {0,0};
+        if(b == 1){
+            intentions.count("left");
+            acceleration[1] += -100;
         }
 
         intentions.clear();
@@ -138,8 +115,6 @@ int main(int, char**)
     SDL_Rect rect3 = { 630, 0, 10, 360 };
     SDL_Rect rect4 = { 0, 350, 640, 10 };
 
-
-    //SDL_Rect p2 = { p2x, p2y, 1, 1 };
 
     shared_ptr<SDL_Window> window_p(
             SDL_CreateWindow("IceTowerForTwo", SDL_WINDOWPOS_UNDEFINED,
@@ -173,6 +148,8 @@ int main(int, char**)
 
     player player2;
 
+    player playerFrame;
+
 
     milliseconds dt(15);
     steady_clock::time_point current_time = steady_clock::now(); // remember current time
@@ -180,20 +157,6 @@ int main(int, char**)
 
 
     for (bool game_active = true; game_active;) {
-
-        //SDL_bool collision_l = SDL_HasIntersection(, &rect1);
-
-        //if (collision_l) {
-            //std::cout << "Left" << endl;
-
-        //}
-
-       // SDL_bool collision_t = SDL_HasIntersection(, &rect3);
-
-        //if (collision_t) {
-      //      std::cout << "Top" << endl;
-
-        //}
 
 
         //steady_clock::time_point frame_start = steady_clock::now();
@@ -219,18 +182,33 @@ int main(int, char**)
         /// fizyka
         double dt_f = dt.count() / 1000.0;
         player1.apply_intent();
+        player1.playerFrame();
         player1.update(dt_f, [&](auto p, auto pos, auto vel) {
             if(pos[0] < 2){
                 std::cout << "Left" << endl;
-                player2.bounc(1);
+                p->velocity = {((vel[0]*vel[0]>2.2)?vel[0]:0.0) * (-1), 0};
+                p->position[0] = pos[0];
+                p->friction = 0.3;
+
             }else if(pos[0] > 62){
                 std::cout << "right" << endl;
+                p->velocity = {((vel[0]*vel[0]>2.2)?vel[0]:0.0) * (-1), 0};
+                p->position[0] = pos[0];
+                p->friction = 0.3;
+
             }else if( pos[1] < 2){
                 std::cout << "top" << endl;
+                p->velocity = {0, ((vel[0]*vel[0]>2.2)?vel[0]:0.0) * (-1)};
+                p->position[0] = pos[0];
+                p->friction = 0.3;
+
             }else if(pos[1] > 35){
                 std::cout << "bottom" << endl;
-            }
-            if (pos[1] < 40) {
+                p->velocity = {0, ((vel[0]*vel[0]>2.2)?vel[0]:0.0) * (-1)};
+                p->position[0] = pos[0];
+                p->friction = 0.3;
+
+            }else if (pos[1] < 40) {
                 p->position = pos;
                 p->velocity = vel;
                 p->friction = 0.2;
@@ -241,18 +219,33 @@ int main(int, char**)
             }
         });
         player2.apply_intent();
+        player2.playerFrame();
         player2.update(dt_f, [&](auto p, auto pos, auto vel) {
             if(pos[0] < 2){
                 std::cout << "Left" << endl;
-                player2.bounc(1);
+                p->velocity = {((vel[0]*vel[0]>2.2)?vel[0]:0.0) * (-1), 0};
+                p->position[0] = pos[0];
+                p->friction = 0.3;
+
             }else if(pos[0] > 62){
                 std::cout << "right" << endl;
+                p->velocity = {((vel[0]*vel[0]>2.2)?vel[0]:0.0) * (-1), 0};
+                p->position[0] = pos[0];
+                p->friction = 0.3;
+
             }else if( pos[1] < 2){
                 std::cout << "top" << endl;
+                p->velocity = {0, ((vel[0]*vel[0]>2.2)?vel[0]:0.0) * (-1)};
+                p->position[0] = pos[0];
+                p->friction = 0.3;
+
             }else if(pos[1] > 35){
                 std::cout << "bottom" << endl;
-            }
-            if (pos[1] < 40) {
+                p->velocity = {0, ((vel[0]*vel[0]>2.2)?vel[0]:0.0) * (-1)};
+                p->position[0] = pos[0];
+                p->friction = 0.3;
+
+            }else if (pos[1] < 40) {
                 p->position = pos;
                 p->velocity = vel;
                 p->friction = 0.2;
@@ -261,7 +254,6 @@ int main(int, char**)
                 p->position[0] = pos[0];
                 p->friction = 0.3;
             }
-
         });
 
 
@@ -271,10 +263,7 @@ int main(int, char**)
         //SDL_RenderClear(renderer_p.get());
 
         //SDL_SetRenderDrawColor(renderer_p.get(), 0, 0, 0, 0);
-        //SDL_RenderFillRect(renderer_p.get(), &p1);
-
-        //SDL_SetRenderDrawColor(renderer_p.get(), 0, 0, 0, 0);
-        //SDL_RenderFillRect(renderer_p.get(), &p2);
+        //SDL_RenderFillRect(renderer_p.get(), player1.playerFrame());
 
         SDL_RenderCopy(renderer_p.get(), tex_t.get(), NULL, NULL);
 
@@ -298,8 +287,6 @@ int main(int, char**)
         SDL_RenderPresent(renderer_p.get());
 
         this_thread::sleep_until(current_time = current_time + dt);
-
-
     }
     SDL_Quit();
     return 0;

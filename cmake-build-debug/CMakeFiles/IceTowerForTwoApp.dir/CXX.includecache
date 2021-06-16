@@ -17,8 +17,6 @@ array
 -
 chrono
 -
-cstdint
--
 functional
 -
 iomanip
@@ -29,17 +27,7 @@ map
 -
 memory
 -
-set
--
-stdexcept
--
-string
--
 thread
--
-tuple
--
-vector
 -
 
 /home/ruxuge/CLionProjects/IceTowerForTwo/src/vectors.hpp
