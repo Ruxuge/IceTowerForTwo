@@ -42,29 +42,45 @@ public:
 
 };
 
-class trap : public physical_c
+
+class trap
 {
+    double x;
+    double y;
+
 public:
-    SDL_Rect createTrap(){
-        int trap_l = rand() % 360 +1;
-        int trap_r = rand() % 360 +1;
 
-        int trap_t = rand() % 640 +1;
-        int trap_b = rand() % 640 +1;
 
-        int trap_cx = rand() % 640 +1;
-        int trap_cy = rand() % 360 +1;
 
-        int trap_number = rand() % 10 +10;
 
-        SDL_Rect trap_react = { trap_cx, trap_cy, 10, 10 };
+    void createTrap() {
+        int trap_l = rand() % 360 + 1;
+        int trap_r = rand() % 360 + 1;
 
-        return trap_react;
+        int trap_t = rand() % 640 + 1;
+        int trap_b = rand() % 640 + 1;
+
+        int trap_cx = rand() % 640 + 1;
+        int trap_cy = rand() % 360 + 1;
+
+        int trap_number = rand() % 10 + 10;
+
+        double angle = atan2(trap_l - 300, 0 - 640) - M_PI;
+
+        SDL_Rect trap_react = { trap_l, 0, 10, 10 };
+
+        auto speed = 10;
+        auto dst_x = speed*cos(angle);
+        auto dst_y = speed*sin(angle);
     }
 
-private:
-
-
+    void update(speed, angle, dst_x, dst_y, callback_t)
+    {
+       auto speed = 10;
+       auto new_dst_x = dst_x + speed*cos(angle);
+        auto new_dst_y = dst_y + speed*sin(angle);
+        callback_t(this, new_dst_x, new_dst_y);
+    }
 };
 
 class player : public physical_c
@@ -80,10 +96,6 @@ public:
         acceleration = {0,0};
     }
 
-
-    /**
- * applies and clears intentions
- * */
     void apply_intent()
     {
         acceleration = {0, 0};
@@ -94,8 +106,6 @@ public:
 
         intentions.clear();
     }
-
-
 };
 
 
@@ -154,9 +164,6 @@ int main(int, char**)
     milliseconds dt(15);
     steady_clock::time_point current_time = steady_clock::now(); // remember current time
     //auto last_trap = current_time;
-
-    int angle;
-
     for (bool game_active = true; game_active;) {
 
         SDL_Event event;
@@ -175,7 +182,14 @@ int main(int, char**)
         if (kbdstate[SDL_SCANCODE_S]) player2.intentions["down"] = 1;
         if (kbdstate[SDL_SCANCODE_W]) player2.intentions["up"] = 1;
 
-        if (kbdstate[SDL_SCANCODE_1]) trap_react = new_trap.createTrap();
+        if (kbdstate[SDL_SCANCODE_1]) new_trap.createTrap();
+
+        //new_trap.update(speed, angle)
+        //{
+        //    p->speed = {((vel[0] * vel[0] > 2.2) ? vel[0] : 0.0) * (-2), 0};
+        //    p->position[0] = pos[0];
+        //    p->friction = 0.3;
+        //}
 
 
 
@@ -255,6 +269,7 @@ int main(int, char**)
                 p->friction = 0.3;
             }
         });
+
 
 
 
