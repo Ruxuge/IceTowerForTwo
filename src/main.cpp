@@ -16,15 +16,9 @@ std::ostream& operator<<(std::ostream& o, const std::array<double, 2>& a)
     return o;
 }
 
-void draw_o_copy(std::shared_ptr<SDL_Renderer> r, int x, int y, std::shared_ptr<SDL_Texture> tex, double w, double h, double a)
+void draw_o(std::shared_ptr<SDL_Renderer> r, int x, int y, std::shared_ptr<SDL_Texture> tex, double w, double h, double a)
 {
     SDL_Rect dst_rect = {x, y, (int)w, (int)h};
-    SDL_RenderCopyEx(r.get(), tex.get(), NULL, &dst_rect, a, NULL, SDL_RendererFlip::SDL_FLIP_NONE);
-}
-
-void draw_o(std::shared_ptr<SDL_Renderer> r, std::array<double, 2> p, std::shared_ptr<SDL_Texture> tex, double w, double h, double a)
-{
-    SDL_Rect dst_rect = {(int)(p[0] - w / 2), (int)(p[1] - h / 2), (int)w, (int)h};
     SDL_RenderCopyEx(r.get(), tex.get(), NULL, &dst_rect, a, NULL, SDL_RendererFlip::SDL_FLIP_NONE);
 }
 
@@ -45,6 +39,31 @@ public:
         auto new_position = position + new_velocity * dt_f + new_acceleration * dt_f * dt_f * 0.5;
         callback_f(this, new_position, new_velocity);
     }
+
+};
+
+class trap : public physical_c
+{
+public:
+    SDL_Rect createTrap(){
+        int trap_l = rand() % 360 +1;
+        int trap_r = rand() % 360 +1;
+
+        int trap_t = rand() % 640 +1;
+        int trap_b = rand() % 640 +1;
+
+        int trap_cx = rand() % 640 +1;
+        int trap_cy = rand() % 360 +1;
+
+        int trap_number = rand() % 10 +10;
+
+        SDL_Rect trap_react = { trap_cx, trap_cy, 10, 10 };
+
+        return trap_react;
+    }
+
+private:
+
 
 };
 
@@ -76,7 +95,10 @@ public:
         intentions.clear();
     }
 
+
 };
+
+
 
 int main(int, char**)
 {
@@ -91,6 +113,8 @@ int main(int, char**)
     SDL_Rect rect2 = { 0, 0, 640, 10 };
     SDL_Rect rect3 = { 630, 0, 10, 360 };
     SDL_Rect rect4 = { 0, 350, 640, 10 };
+
+
 
 
     shared_ptr<SDL_Window> window_p(
@@ -123,13 +147,17 @@ int main(int, char**)
 
     player player2;
 
+    trap new_trap;
+
+    SDL_Rect trap_react;
+
     milliseconds dt(15);
     steady_clock::time_point current_time = steady_clock::now(); // remember current time
+    //auto last_trap = current_time;
 
-
+    int angle;
 
     for (bool game_active = true; game_active;) {
-
 
         SDL_Event event;
         while (SDL_PollEvent(&event)) { // check if there are some events
@@ -141,13 +169,14 @@ int main(int, char**)
         if (kbdstate[SDL_SCANCODE_LEFT]) player1.intentions["left"] = 1;
         if (kbdstate[SDL_SCANCODE_UP]) player1.intentions["up"] = 1;
         if (kbdstate[SDL_SCANCODE_DOWN]) player1.intentions["down"] = 1;
-        if (kbdstate[SDL_SCANCODE_RCTRL]) player1.intentions["shoot"] = 1;
 
         if (kbdstate[SDL_SCANCODE_D]) player2.intentions["right"] = 1;
         if (kbdstate[SDL_SCANCODE_A]) player2.intentions["left"] = 1;
         if (kbdstate[SDL_SCANCODE_S]) player2.intentions["down"] = 1;
         if (kbdstate[SDL_SCANCODE_W]) player2.intentions["up"] = 1;
-        if (kbdstate[SDL_SCANCODE_LCTRL]) player1.intentions["shoot"] = 1;
+
+        if (kbdstate[SDL_SCANCODE_1]) trap_react = new_trap.createTrap();
+
 
 
         /// fizyka
@@ -227,6 +256,8 @@ int main(int, char**)
             }
         });
 
+
+
         int p1x = ((int)(player1.position[0]*10 - 12 / 2));
         int p2x = ((int)(player2.position[0]*10 - 16 / 2));
         int p1y = ((int)(player1.position[1]*10 - 12 / 2));
@@ -235,6 +266,7 @@ int main(int, char**)
         if( (((p1x - p2x) < 10) && ((p1x - p2x) > -10)) && (((p1y - p2y) < 10) && ((p1y - p2y) > -10)) ){
             std::cout << "end" << endl;
         }
+
 
 
         /// grafika
@@ -253,9 +285,26 @@ int main(int, char**)
         SDL_SetRenderDrawColor(renderer_p.get(), 255, 0, 0, 255);
         SDL_RenderFillRect(renderer_p.get(), &rect4);
 
+        SDL_SetRenderDrawColor(renderer_p.get(), 255, 0, 0, 255);
+        SDL_RenderFillRect(renderer_p.get(), &trap_react);
 
-        draw_o_copy(renderer_p, (int)(player1.position[0]*10 - 12 / 2), (int)(player1.position[1] * 10 - 20 / 2), tex_p1, 12, 20, player1.position[0]*36+player1.position[1]*5);
-        draw_o_copy(renderer_p, (int)(player2.position[0]*10 - 16 / 2), (int)(player2.position[1] * 10 - 20 / 2), tex_p2, 16, 20, player2.position[0]*36+player2.position[1]*5);
+        //if(player1.intentions["top"] == 1){
+        //    angle = 0;
+        //}else if (player1.intentions["bottom"] == 1){
+        //    angle = 180;
+        //}else if (player1.intentions["right"] == 1){
+        //    angle = 90;
+        //}else if (player1.intentions["left"] == 1){
+        //    angle = 270;
+        //}
+
+
+        draw_o(renderer_p, (int)(player1.position[0]*10 - 12 / 2), (int)(player1.position[1] * 10 - 20 / 2), tex_p1, 12, 20, player1.position[0]*36+player1.position[1]*5);
+        draw_o(renderer_p, (int)(player2.position[0]*10 - 16 / 2), (int)(player2.position[1] * 10 - 20 / 2), tex_p2, 16, 20, player2.position[0]*36+player2.position[1]*5);
+        /// a = double * 36 + [1 or 0] * 5
+
+        //draw_o(renderer_p, (int)(new_trap.position[0]), (int)(new_trap.position[1]), tex_p2, 10, 10, new_trap.position[0]*36+new_trap.position[1]*5);
+
 
 
         SDL_RenderPresent(renderer_p.get());
