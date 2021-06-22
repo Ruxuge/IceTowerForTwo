@@ -294,13 +294,13 @@ int main(int, char**)
 
             }else if( pos[1] < 2){
                 //std::cout << "top" << endl;
-                p->velocity = {((vel[0]*vel[0]>2.2)?vel[0]:0.0) * (-2), 0};
+                p->velocity = vel * -2;
                 p->position[0] = pos[0];
                 p->friction = 0.3;
 
             }else if(pos[1] > 35){
                 //std::cout << "bottom" << endl;
-                p->velocity = {((vel[0]*vel[0]>2.2)?vel[0]:0.0) * (-2), 0};
+                p->velocity = vel * -2;
                 p->position[0] = pos[0];
                 p->friction = 0.3;
 
@@ -332,13 +332,13 @@ int main(int, char**)
 
             }else if( pos[1] < 2){
                 //std::cout << "top" << endl;
-                p->velocity = {((vel[0]*vel[0]>2.2)?vel[0]:0.0) * (-2), 1};
+                p->velocity = vel * -2;
                 p->position[0] = pos[0];
                 p->friction = 0.3;
 
             }else if(pos[1] > 35){
                 //std::cout << "bottom" << endl;
-                p->velocity = {((vel[0]*vel[0]>2.2)?vel[0]:0.0) * (-2), 1};
+                p->velocity = vel * -2;
                 p->position[0] = pos[0];
                 p->friction = 0.3;
 
@@ -375,17 +375,22 @@ int main(int, char**)
 
         SDL_Rect frame_p2 = {p2x, p2y, 20, 20};
 
-        if(SDL_HasIntersection(&frame_p1, &frame_p2) ){
-            player1.dmg(1);
-            player2.dmg(2);
-        }
+        if(true) {
 
-        if(SDL_HasIntersection(&frame_p1, &log1) || SDL_HasIntersection(&frame_p1, &log2) || SDL_HasIntersection(&frame_p1, &log3) || SDL_HasIntersection(&frame_p1, &log4)){
-            player1.dmg(1);
-        }
+            if (SDL_HasIntersection(&frame_p1, &frame_p2)) {
+                player1.dmg(1);
+                player2.dmg(2);
+            }
 
-        if(SDL_HasIntersection(&frame_p2, &log1) || SDL_HasIntersection(&frame_p2, &log2) || SDL_HasIntersection(&frame_p2, &log3) || SDL_HasIntersection(&frame_p2, &log4)){
-            player2.dmg(2);
+            if (SDL_HasIntersection(&frame_p1, &log1) || SDL_HasIntersection(&frame_p1, &log2) ||
+                SDL_HasIntersection(&frame_p1, &log3) || SDL_HasIntersection(&frame_p1, &log4)) {
+                player1.dmg(1);
+            }
+
+            if (SDL_HasIntersection(&frame_p2, &log1) || SDL_HasIntersection(&frame_p2, &log2) ||
+                SDL_HasIntersection(&frame_p2, &log3) || SDL_HasIntersection(&frame_p2, &log4)) {
+                player2.dmg(2);
+            }
         }
 
         if(SDL_HasIntersection(&frame_p1, &frame_b)){
