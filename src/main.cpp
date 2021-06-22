@@ -43,64 +43,57 @@ public:
 };
 
 
-class trap : public physical_c
+
+class trap
 {
+
 public:
-    //void createTrap() {
-    //    int trap_l = rand() % 360 + 1;
-    //    int trap_r = rand() % 360 + 1;
-    //
-    //    int trap_t = rand() % 640 + 1;
-    //    int trap_b = rand() % 640 + 1;
-    //
-    //    int trap_number = rand() % 10 + 10;
-    //
-    //    double angle = atan2(trap_l - 300, 0 - 640) - M_PI;
-    //
-    //
-    //    auto speed = 10;
-    //    auto dst_x = speed*cos(angle);
-    //    auto dst_y = speed*sin(angle);
-    //}
 
-    std::map<std::string, int> intentions;
+    int x = 0;
+    int y = 0;
+    int speed = 3;
+    double angle;
 
-    trap()
-    {
-        int trap_loc = rand() % 640 + 1;
-        position = {10, 10};
-        velocity = {0*50, 0};
-        friction = 0;
-        acceleration = {0,0};
+    int trap_l = std::rand() % 360 + 1;
+    int trap_r = std::rand() % 360 + 1;
+    int trap_t = std::rand() % 360 + 1;
+    int trap_b = std::rand() % 360 + 1;
+
+    int trap_number = std::rand() % 10 + 10;
+    int trap_direction = std::rand() % 4 + 1;
+
+    if(trap_direction == 1){
+        angle = atan2( trap_l - 300, 100 - 600) - M_PI;
+    }else if(trap_direction == 2){
+
     }
+
 
     void apply_intent()
     {
-        int intent_rand = rand() % 4 +1;
+        x += speed*cos(angle);
+        std::cout <<"x = "<< x << std::endl;
+        y += speed*sin(angle);
+        std::cout <<"y = "<< y << std::endl;
 
-        acceleration = {0, 0};
-        if(intent_rand == 1) acceleration[0] += 200;
-        if(intent_rand == 2) acceleration[0] += -200;
-        if(intent_rand == 3) acceleration[1] += -200;
-        if(intent_rand == 4) acceleration[1] += 200;
+        std::cout <<"trap = "<< trap_l << std::endl;
 
-        intentions.clear();
+        std::cout <<"angle = "<< angle << std::endl;
     }
 };
 
-class buff
+class buff : public physical_c
 {
 
 public:
-    void createBuff() {
 
+    buff()
+    {
+        position = {10,10};
         int buff_x = rand() % 640 + 1;
         int buff_y = rand() % 360 + 1;
 
         int buff_type = rand() % 10 + 10;
-
-        SDL_Rect buff_react = { buff_x, buff_y, 10, 10 };
-
 
     }
 };
@@ -134,9 +127,11 @@ public:
 
 int main(int, char**)
 {
+
     using namespace std;
     using namespace std::chrono;
     using namespace tp::operators;
+    srand(time(nullptr));
 
     SDL_Init(SDL_INIT_EVERYTHING);
     IMG_Init(IMG_INIT_PNG);
@@ -184,6 +179,9 @@ int main(int, char**)
     shared_ptr<SDL_Texture> tex_bomb(IMG_LoadTexture(renderer_p.get(), "data/trap.jpeg"),
                                   [](auto* tex) { SDL_DestroyTexture(tex); });
 
+    shared_ptr<SDL_Texture> tex_heal(IMG_LoadTexture(renderer_p.get(), "data/heal.png"),
+                                     [](auto* tex) { SDL_DestroyTexture(tex); });
+
 
 
     player player1;
@@ -192,9 +190,7 @@ int main(int, char**)
 
     trap trap;
 
-    buff new_buff;
-
-    //SDL_Rect buff_react;
+    buff buff;
 
     milliseconds dt(15);
     steady_clock::time_point current_time = steady_clock::now(); // remember current time
@@ -215,17 +211,6 @@ int main(int, char**)
         if (kbdstate[SDL_SCANCODE_A]) player2.intentions["left"] = 1;
         if (kbdstate[SDL_SCANCODE_S]) player2.intentions["down"] = 1;
         if (kbdstate[SDL_SCANCODE_W]) player2.intentions["up"] = 1;
-
-        if (kbdstate[SDL_SCANCODE_B]) new_buff.createBuff();
-
-
-        //new_trap.update(speed, angle)
-        //{
-        //    p->speed = {((vel[0] * vel[0] > 2.2) ? vel[0] : 0.0) * (-2), 0};
-        //    p->position[0] = pos[0];
-        //    p->friction = 0.3;
-        //}
-
 
 
         /// fizyka
@@ -306,50 +291,6 @@ int main(int, char**)
         });
 
         trap.apply_intent();
-        trap.update(dt_f, [&](auto p, auto pos, auto vel) {
-            if(pos[0] < 2){
-                std::cout << "Left" << endl;
-                p->velocity = {((vel[0]*vel[0]>2.2)?vel[0]:0.0) * (-2), 0};
-                p->position[0] = pos[0];
-                p->friction = 0.3;
-
-            }else if(pos[0] > 62){
-                std::cout << "right" << endl;
-                p->velocity = {((vel[0]*vel[0]>2.2)?vel[0]:0.0) * (-2), 0};
-                p->position[0] = pos[0];
-                p->friction = 0.3;
-
-            }else if( pos[1] < 2){
-                std::cout << "top" << endl;
-                p->velocity = {((vel[0]*vel[0]>2.2)?vel[0]:0.0) * (-2), 1};
-                p->position[0] = pos[0];
-                p->friction = 0.3;
-
-            }else if(pos[1] > 35){
-                std::cout << "bottom" << endl;
-                p->velocity = {((vel[0]*vel[0]>2.2)?vel[0]:0.0) * (-2), 1};
-                p->position[0] = pos[0];
-                p->friction = 0.3;
-
-            }else if (pos[1] < 40) {
-                p->position = pos;
-                p->velocity = vel;
-                p->friction = 0.2;
-            } else {
-                p->velocity = {(vel[0]*vel[0]>2.2)?vel[0]:0.0, 0};
-                p->position[0] = pos[0];
-                p->friction = 0.3;
-            }
-        });
-
-        //SDL_Rect log1 = {200, 70, 200, 20};
-        //
-        //SDL_Rect log2 = {500, 300, 200, 20};
-        //
-        //SDL_Rect log3 = {50, 250, 200, 20};
-        //
-        //SDL_Rect log4 = {300, 150, 200, 20};
-
 
 
         int p1x = ((int)(player1.position[0]*10 - 12 / 2));
@@ -357,13 +298,6 @@ int main(int, char**)
         int p1y = ((int)(player1.position[1]*10 - 12 / 2));
         int p2y = ((int)(player2.position[1]*10 - 16 / 2));
 
-        //if( (((p1x - p2x) < 10) && ((p1x - p2x) > -10)) && (((p1y - p2y) < 10) && ((p1y - p2y) > -10)) ){
-        //    std::cout << "end" << endl;
-        //}
-
-        //if( (((p1x - p2x) < 10) && ((p1x - p2x) > -10)) && (((p1y - p2y) < 10) && ((p1y - p2y) > -10)) ){
-        //    std::cout << "end" << endl;
-        //}
 
         SDL_Rect frame_p1 = {p1x, p1y, 20, 20};
 
@@ -401,9 +335,6 @@ int main(int, char**)
         SDL_SetRenderDrawColor(renderer_p.get(), 255, 0, 0, 255);
         SDL_RenderFillRect(renderer_p.get(), &rect4);
 
-        SDL_SetRenderDrawColor(renderer_p.get(), 0, 255, 0, 255);
-        //SDL_RenderFillRect(renderer_p.get(), &buff_react);
-
         SDL_SetRenderDrawColor(renderer_p.get(), 255, 0, 0, 255);
         SDL_RenderFillRect(renderer_p.get(), &log1);
 
@@ -431,8 +362,9 @@ int main(int, char**)
         draw_o(renderer_p, (int)(player2.position[0]*10 - 16 / 2), (int)(player2.position[1] * 10 - 20 / 2), tex_p2, 16, 20, player2.position[0]*36+player2.position[1]*5);
         /// a = double * 36 + [1 or 0] * 5
 
-        draw_o(renderer_p, (int)(trap.position[0]), (int)(trap.position[1]), tex_bomb, 10, 10, trap.position[0]*36+trap.position[1]*5);
+        draw_o(renderer_p, (int)(trap.x), (int)(trap.y), tex_bomb, 10, 10, trap.x*36+trap.y*5);
 
+        draw_o(renderer_p, (int)(buff.position[0]), (int)(buff.position[1]), tex_heal, 20, 20, buff.position[0]*36+buff.position[1]*5);
 
 
         SDL_RenderPresent(renderer_p.get());
