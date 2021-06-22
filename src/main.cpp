@@ -9,6 +9,7 @@
 #include <map>
 #include <memory>
 #include <thread>
+#include <SDL_ttf.h>
 
 std::ostream& operator<<(std::ostream& o, const std::array<double, 2>& a)
 {
@@ -42,59 +43,80 @@ public:
 
 };
 
-
-
-class trap
-{
+class trap {
 
 public:
 
-    int x = 0;
-    int y = 0;
+    int x;
+    int y;
     int speed = 3;
-    double angle;
 
-    int trap_l = std::rand() % 360 + 1;
-    int trap_r = std::rand() % 360 + 1;
-    int trap_t = std::rand() % 360 + 1;
-    int trap_b = std::rand() % 360 + 1;
 
-    int trap_number = std::rand() % 10 + 10;
-    int trap_direction = std::rand() % 4 + 1;
+    double new_trap() {
+        int trap_l = std::rand() % 360 + 1;
+        int trap_t = std::rand() % 640 + 1;
 
-    if(trap_direction == 1){
-        angle = atan2( trap_l - 300, 100 - 600) - M_PI;
-    }else if(trap_direction == 2){
+        //int trap_number = std::rand() % 10 + 10;
+        int trap_direction = std::rand() % 4 + 1;
 
+        if(trap_direction == 1){
+            y = trap_l;
+            x = 10;
+        }else if(trap_direction == 2){
+            y = trap_l;
+            x = 630;
+        }else if(trap_direction == 3){
+            y = 10;
+            x = trap_t;
+        }else if(trap_direction == 4){
+            y = 340;
+            x = trap_t;
+        }
+
+        angle = atan2(y - 100, x - 200) - M_PI;
+
+        return angle;
     }
 
+    double angle = new_trap();
 
     void apply_intent()
     {
-        x += speed*cos(angle);
-        std::cout <<"x = "<< x << std::endl;
+        if(x > 640 || y > 360 || x < 0 || y < 0){
+            double angle = new_trap();
+        }
+
         y += speed*sin(angle);
-        std::cout <<"y = "<< y << std::endl;
+        x += speed*cos(angle);
+        //std::cout <<"x = "<< x << std::endl;
 
-        std::cout <<"trap = "<< trap_l << std::endl;
+        //std::cout <<"y = "<< y << std::endl;
 
-        std::cout <<"angle = "<< angle << std::endl;
+        //std::cout <<"angle = "<< angle << std::endl;
+
+        //std::cout <<"speed = "<< speed << std::endl;
     }
 };
 
-class buff : public physical_c
+class buff
 {
 
 public:
+    int x = -1;
+    int y;
 
-    buff()
+    void create_buff()
     {
-        position = {10,10};
-        int buff_x = rand() % 640 + 1;
-        int buff_y = rand() % 360 + 1;
+        x = rand() % 600 + 20;
+        y = rand() % 300 + 20;
 
         int buff_type = rand() % 10 + 10;
+    }
 
+    void buff_control(){
+        if(x < 0){
+            create_buff();
+        }
     }
 };
 
@@ -102,13 +124,48 @@ class player : public physical_c
 {
 public:
     std::map<std::string, int> intentions;
+    int p;
+    int live_player_f;
+    int live_player_s;
 
-    player()
-    {
-        position = {10, 10};
+    player() {
+        position = {15, 10};
         velocity = {0, 0};
         friction = 0.03;
-        acceleration = {0,0};
+        acceleration = {0, 0};
+    }
+
+    void dmg(int p){
+        if (p == 1) {
+            if (live_player_f < 0){
+                std::cout << "player1 is lose" << std::endl;
+            }else{
+                live_player_f -= 1;
+            }
+        }
+        if (p == 2) {
+            if (live_player_s < 0){
+                std::cout << "player2 is lose" << std::endl;
+            }else {
+                live_player_s -= 1;
+            }
+        }
+        std::cout << "player1_live: "<< live_player_f << std::endl;
+        std::cout << "player2_live: "<< live_player_s << std::endl;
+    }
+
+    void heal(int p){
+        if (p == 1)
+            live_player_f += 1;
+
+        if (p == 2)
+            live_player_s += 1;
+
+    }
+
+    void init_live(){
+        live_player_s = 5;
+        live_player_f = 5;
     }
 
     void apply_intent()
@@ -123,8 +180,6 @@ public:
     }
 };
 
-
-
 int main(int, char**)
 {
 
@@ -135,6 +190,7 @@ int main(int, char**)
 
     SDL_Init(SDL_INIT_EVERYTHING);
     IMG_Init(IMG_INIT_PNG);
+    //TTF_Init();
 
     SDL_Rect rect1 = { 0, 0, 10, 360 };
     SDL_Rect rect2 = { 0, 0, 640, 10 };
@@ -162,6 +218,7 @@ int main(int, char**)
             [](auto* renderer) { SDL_DestroyRenderer(renderer); });
 
 
+    //TTF_Font * font = TTF_OpenFont("arial.ttf", 25);
 
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
@@ -192,6 +249,10 @@ int main(int, char**)
 
     buff buff;
 
+    player1.position[0] += 30;
+    player1.init_live();
+    player2.init_live();
+
     milliseconds dt(15);
     steady_clock::time_point current_time = steady_clock::now(); // remember current time
     for (bool game_active = true; game_active;) {
@@ -213,30 +274,32 @@ int main(int, char**)
         if (kbdstate[SDL_SCANCODE_W]) player2.intentions["up"] = 1;
 
 
+
+
         /// fizyka
         double dt_f = dt.count() / 1000.0;
         player1.apply_intent();
         player1.update(dt_f, [&](auto p, auto pos, auto vel) {
             if(pos[0] < 2){
-                std::cout << "Left" << endl;
+                //std::cout << "Left" << endl;
                 p->velocity = {((vel[0]*vel[0]>2.2)?vel[0]:0.0) * (-2), 0};
                 p->position[0] = pos[0];
                 p->friction = 0.3;
 
             }else if(pos[0] > 62){
-                std::cout << "right" << endl;
+                //std::cout << "right" << endl;
                 p->velocity = {((vel[0]*vel[0]>2.2)?vel[0]:0.0) * (-2), 0};
                 p->position[0] = pos[0];
                 p->friction = 0.3;
 
             }else if( pos[1] < 2){
-                std::cout << "top" << endl;
+                //std::cout << "top" << endl;
                 p->velocity = {((vel[0]*vel[0]>2.2)?vel[0]:0.0) * (-2), 0};
                 p->position[0] = pos[0];
                 p->friction = 0.3;
 
             }else if(pos[1] > 35){
-                std::cout << "bottom" << endl;
+                //std::cout << "bottom" << endl;
                 p->velocity = {((vel[0]*vel[0]>2.2)?vel[0]:0.0) * (-2), 0};
                 p->position[0] = pos[0];
                 p->friction = 0.3;
@@ -256,25 +319,25 @@ int main(int, char**)
         player2.apply_intent();
         player2.update(dt_f, [&](auto p, auto pos, auto vel) {
             if(pos[0] < 2){
-                std::cout << "Left" << endl;
+                //std::cout << "Left" << endl;
                 p->velocity = {((vel[0]*vel[0]>2.2)?vel[0]:0.0) * (-2), 0};
                 p->position[0] = pos[0];
                 p->friction = 0.3;
 
             }else if(pos[0] > 62){
-                std::cout << "right" << endl;
+                //std::cout << "right" << endl;
                 p->velocity = {((vel[0]*vel[0]>2.2)?vel[0]:0.0) * (-2), 0};
                 p->position[0] = pos[0];
                 p->friction = 0.3;
 
             }else if( pos[1] < 2){
-                std::cout << "top" << endl;
+                //std::cout << "top" << endl;
                 p->velocity = {((vel[0]*vel[0]>2.2)?vel[0]:0.0) * (-2), 1};
                 p->position[0] = pos[0];
                 p->friction = 0.3;
 
             }else if(pos[1] > 35){
-                std::cout << "bottom" << endl;
+                //std::cout << "bottom" << endl;
                 p->velocity = {((vel[0]*vel[0]>2.2)?vel[0]:0.0) * (-2), 1};
                 p->position[0] = pos[0];
                 p->friction = 0.3;
@@ -290,7 +353,13 @@ int main(int, char**)
             }
         });
 
+        //SDL_Color color = { 255, 255, 255 };
+        //SDL_Surface * surface = TTF_RenderText_Solid(font,"Welcome to Gigi Labs", color);
+
+        //SDL_Texture * texture = SDL_CreateTextureFromSurface(renderer_p.get(), surface);
+
         trap.apply_intent();
+        buff.buff_control();
 
 
         int p1x = ((int)(player1.position[0]*10 - 12 / 2));
@@ -298,22 +367,49 @@ int main(int, char**)
         int p1y = ((int)(player1.position[1]*10 - 12 / 2));
         int p2y = ((int)(player2.position[1]*10 - 16 / 2));
 
+        SDL_Rect frame_b = {buff.x, buff.y, 20, 20};
+
+        SDL_Rect frame_t = {trap.x, trap.y, 10, 10};
 
         SDL_Rect frame_p1 = {p1x, p1y, 20, 20};
 
         SDL_Rect frame_p2 = {p2x, p2y, 20, 20};
 
         if(SDL_HasIntersection(&frame_p1, &frame_p2) ){
-            std::cout << "crash" << endl;
+            player1.dmg(1);
+            player2.dmg(2);
         }
 
         if(SDL_HasIntersection(&frame_p1, &log1) || SDL_HasIntersection(&frame_p1, &log2) || SDL_HasIntersection(&frame_p1, &log3) || SDL_HasIntersection(&frame_p1, &log4)){
-            std::cout << "player1 - lose" << endl;
+            player1.dmg(1);
         }
 
         if(SDL_HasIntersection(&frame_p2, &log1) || SDL_HasIntersection(&frame_p2, &log2) || SDL_HasIntersection(&frame_p2, &log3) || SDL_HasIntersection(&frame_p2, &log4)){
-            std::cout << "player2 - lose" << endl;
+            player2.dmg(2);
         }
+
+        if(SDL_HasIntersection(&frame_p1, &frame_b)){
+            buff.create_buff();
+            player1.heal(1);
+        }
+
+        if(SDL_HasIntersection(&frame_p1, &frame_t)) {
+            trap.new_trap();
+            player1.dmg(1);
+        }
+
+        if(SDL_HasIntersection(&frame_p2, &frame_b)){
+            buff.create_buff();
+            player2.heal(2);
+
+        }
+
+        if(SDL_HasIntersection(&frame_p2, &frame_t)){
+            trap.new_trap();
+            player2.dmg(2);
+
+        }
+
 
 
         /// grafika
@@ -347,6 +443,8 @@ int main(int, char**)
         SDL_SetRenderDrawColor(renderer_p.get(), 255, 0, 0, 255);
         SDL_RenderFillRect(renderer_p.get(), &log4);
 
+        //SDL_RenderCopy(renderer_p.get(), texture, NULL, NULL);
+
         //if(player1.intentions["top"] == 1){
         //    angle = 0;
         //}else if (player1.intentions["bottom"] == 1){
@@ -364,14 +462,16 @@ int main(int, char**)
 
         draw_o(renderer_p, (int)(trap.x), (int)(trap.y), tex_bomb, 10, 10, trap.x*36+trap.y*5);
 
-        draw_o(renderer_p, (int)(buff.position[0]), (int)(buff.position[1]), tex_heal, 20, 20, buff.position[0]*36+buff.position[1]*5);
+        draw_o(renderer_p, (int)(buff.x), (int)(buff.y), tex_heal, 20, 20, buff.x*36+buff.y*5);
 
 
+        //TTF_CloseFont(font);
         SDL_RenderPresent(renderer_p.get());
 
         this_thread::sleep_until(current_time = current_time + dt);
 
     }
+    //TTF_Quit();
     SDL_Quit();
     return 0;
 }
