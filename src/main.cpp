@@ -137,29 +137,55 @@ public:
 
     void dmg(int p){
         if (p == 1) {
-            if (live_player_f < 0){
-                std::cout << "player1 is lose" << std::endl;
-            }else{
+            if(live_player_f > 0)
+            {
                 live_player_f -= 1;
+                std::cout << "*********************************************"<< std::endl;
+                std::cout << "* "<< "player1_live: "<< live_player_f << " *"<< std::endl;
+                std::cout << "*********************************************"<< std::endl;
+                if(live_player_f == 0)
+                    std::cout << "player1 is lose" << std::endl;
+            }else{
+                std::cout << "player1 is lose" << std::endl;
             }
         }
         if (p == 2) {
-            if (live_player_s < 0){
+            if(live_player_s > 0) {
+                live_player_s -= 1;
+                std::cout << "*********************************************" << std::endl;
+                std::cout << "* " << "player2_live: " << live_player_s << " *" << std::endl;
+                std::cout << "*********************************************" << std::endl;
+                if(live_player_s == 0)
                 std::cout << "player2 is lose" << std::endl;
             }else {
-                live_player_s -= 1;
+                std::cout << "player2 is lose" << std::endl;
             }
         }
-        std::cout << "player1_live: "<< live_player_f << std::endl;
-        std::cout << "player2_live: "<< live_player_s << std::endl;
+        //std::cout << "*********************************************"<< std::endl;
+        //std::cout << "* "<< "player1_live: "<< live_player_f << " *"<< std::endl;
+        //std::cout << "* " <<"player2_live: "<< live_player_s << " *" << std::endl;
+        //std::cout << "*********************************************"<< std::endl;
     }
 
     void heal(int p){
-        if (p == 1)
+        if (p == 1) {
             live_player_f += 1;
+            std::cout << "*********************************************"<< std::endl;
+            std::cout << "* "<< "player1_live: "<< live_player_f << " *"<< std::endl;
+            std::cout << "*********************************************"<< std::endl;
+        }
 
-        if (p == 2)
+        if (p == 2){
             live_player_s += 1;
+            std::cout << "*********************************************"<< std::endl;
+            std::cout << "* "<< "player2_live: "<< live_player_s << " *"<< std::endl;
+            std::cout << "*********************************************"<< std::endl;
+        }
+
+        //std::cout << "*********************************************"<< std::endl;
+        //std::cout << "* "<< "player1_live: "<< live_player_f << " *"<< std::endl;
+        //std::cout << "* " <<"player2_live: "<< live_player_s << " *" << std::endl;
+        //std::cout << "*********************************************"<< std::endl;
 
     }
 
@@ -253,9 +279,21 @@ int main(int, char**)
     player1.init_live();
     player2.init_live();
 
+    int timer1 = 0;
+    int delay1 = 50;
+    int timer2 = 0;
+    int delay2 = 50;
+
     milliseconds dt(15);
     steady_clock::time_point current_time = steady_clock::now(); // remember current time
     for (bool game_active = true; game_active;) {
+        timer1 += 1;
+        timer2 += 1;
+
+        //std::cout << "timer1: " << timer1 << std::endl;
+        //std::cout << "timer2: " << timer2 << std::endl;
+        //std::cout << "delay1: " << delay1 << std::endl;
+        //std::cout << "delay2: " << delay2 << std::endl;
 
         SDL_Event event;
         while (SDL_PollEvent(&event)) { // check if there are some events
@@ -375,16 +413,24 @@ int main(int, char**)
 
         SDL_Rect frame_p2 = {p2x, p2y, 20, 20};
 
-        if(true) {
+        if(timer1 == 50 || timer1 == delay1) {
+            delay1 += 150;
 
             if (SDL_HasIntersection(&frame_p1, &frame_p2)) {
                 player1.dmg(1);
-                player2.dmg(2);
             }
 
             if (SDL_HasIntersection(&frame_p1, &log1) || SDL_HasIntersection(&frame_p1, &log2) ||
                 SDL_HasIntersection(&frame_p1, &log3) || SDL_HasIntersection(&frame_p1, &log4)) {
                 player1.dmg(1);
+            }
+        }
+
+        if(timer2 == 50 || timer2 == delay2) {
+            delay2 += 150;
+
+            if (SDL_HasIntersection(&frame_p1, &frame_p2)) {
+                player2.dmg(2);
             }
 
             if (SDL_HasIntersection(&frame_p2, &log1) || SDL_HasIntersection(&frame_p2, &log2) ||
