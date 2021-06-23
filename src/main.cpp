@@ -519,9 +519,11 @@ int main(int, char**)
         //TTF_CloseFont(font);
         SDL_RenderPresent(renderer_p.get());
 
+
         this_thread::sleep_until(current_time = current_time + dt);
 
     }
+
     //TTF_Quit();
     SDL_Quit();
     return 0;
